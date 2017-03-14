@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+    <title>NOTE</title>
+    <style type="text/css">
+      * { box-sizing:border-box; }
+      html{
+        margin:0; 
+        padding:0; 
+        width:100%;
+        height: 100%;
+        background: gray;
+        overflow-x: hidden;
+        overflow-y: hidden;
+      }
+      body{
+        margin:0 auto; 
+        padding:0; 
+        font-size: 14px;
+        text-align: center;
+        width:100%;
+        height: 100%;
+        background: #F4F4F4;
+        max-width: 640px;
+      }
+      
+      textarea{ 
+        resize:none; 
+        outline: none;
+        border: solid 1px #DDDDDD;
+        width: 100%;
+        height: 100%;
+        display: block;
+        margin: 4px 0;
+        padding: 8px;
+        -webkit-appearance: none;
+      }
+
+
+      .page{
+        margin:0;
+        padding:0;
+        width:100%;
+        height: 100%;
+        position: relative;
+      }
+      
+      .main{
+        position: absolute;
+        left:0;
+        right:0;
+        top: 36px;
+        bottom: 80px;
+        margin: 1px auto;
+        padding: 0px;
+        text-align: center;
+        background: white;
+        font: normal 14px/32px verdana;
+        overflow: hidden;
+      }
+      
+      .button {
+        color: white;
+        border: none 0px #008080;
+        background: #008080;
+        margin: 16px auto;
+        display: block;
+        box-sizing: border-box;
+        width: 80%;
+        padding:0;
+        height: 36pt;
+        font: normal 14pt/36pt verdana;
+        mini-width: 72pt;
+        border-radius: 5px;
+        outline:none;
+        -webkit-appearance: none;
+      }
+      
+      .button:active{
+        background-color: #00C0C0;
+      }
+      
+      .memo{
+        border: solid 1px #EAEAEA;
+        display: block;
+        margin:0;
+        padding: 16px;
+        text-align: left;
+        background: white;
+        font: normal 14px/1.5 "Courier New", tahoma, arial, sans-serif;
+        line-height: 24px;
+        overflow-y: scroll;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+      }
+      
+      .header{
+        position: absoulute;
+        left:0;
+        top:0;
+        right:0;
+        margin: 0;
+        padding: 0px;
+        font: normal 14px/36px verdana;
+        background: #272727;
+        text-align: left;
+        overflow: hidden;
+        list-style: none;
+        heigh: 36px;
+      }
+      
+      .header .btl{
+        position: absolute;
+        left:0;
+        top:0;
+        width: 36px;
+        height: 36px;
+        background-color: transparent;
+        background-repeat: no-repeat;
+        background-position: 2px 2px;  
+        background-size:32px 32px;
+        background-image: url(/woo/common/img/back.png);
+      }
+
+      .header .title{
+        position: absolute;
+        top:0;
+        left:36px;
+        right: 36px;
+        height: 36px;
+        font: normal 14px/36px verdana;
+        text-align: center;
+      }
+      
+      .header .btr{
+        position: absolute;
+        right:0;
+        top:0;
+        width: 36px;
+        height: 36px;
+        background-color: transparent;
+        background-repeat: no-repeat;
+        background-position: 8px 8px;  
+        background-size:24px 24px;
+        background-image: url(https://www.bimwook.com/woo/common/img/check.png);
+      }
+      
+      .header li{
+        float: left;
+        height: 36px;
+        padding:0 8px;
+        line-height: 24px;
+        margin: 0 4px;
+        cursor: pointer;
+      }
+      .header li:active{
+        background-color: white;
+      }
+      .footer{
+        position: absolute;
+        left:0;
+        right:0;
+        bottom:0;
+        height: 80px;
+        text-align:center;
+        padding: 0;
+        background: #FAFAFA;
+      }
+      #main{
+        display: none;
+      }
+    </style>
+    <script type="text/javascript" src="https://www.bimwook.com/woo/common/ajax.js"></script>
+  </head>
+  <body>
+  
+    <div id="main" class="page">
+      <ul class="header">
+        <li class="btl alt"></li>
+        <li class="title">
+          <span id="bar">MY BOX</span>      
+        </li>          
+        <li class="btr" onclick="ui.save();"></li>
+      </ul>
+      <div class="main">
+        <textarea id="memo" class="memo"></textarea>
+      </div>
+      <div class="footer">
+        <button class="button blue" onclick="ui.select();">附件</button>
+      </div>    
+    </div>
+
+    <script type="text/javascript">
+      var resource = {};
+      resource.add = function(opt){
+        var fd = new FormData();
+        var f = document.createElement("input");
+        f.setAttribute('type',"file");
+        f.setAttribute('name',"file");
+
+        var url = opt.url || "/woo/resource/add.do";  
+        var evt = {};
+        
+        evt.onstarting = typeof(opt.onstarting)=="function"? opt.onstarting : function(file){return true;};
+        evt.onfinished = typeof(opt.onfinished)=="function"? opt.onfinished : function(ret){};
+        evt.onprogress = typeof(opt.onprogress)=="function"? opt.onprogress : function(loaded, total){};
+        
+        f.onchange = function(){
+          var file = this.files[0];
+          evt.onprogress(0, 0);
+          if(evt.onstarting(file)===false) return false;
+          fd.append("file", file);
+          fd.append("callback", "/woo/echo.do");
+          var xhr = new XMLHttpRequest();
+          xhr.onerror = function(){
+            evt.onprogress(-1, -1);
+            //this.abort();
+          }
+          xhr.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+              evt.onfinished(this.responseText);
+            }
+          }
+          xhr.upload.onprogress = function(ev) {
+            evt.onprogress(ev.loaded, ev.total);
+          };
+          xhr.open("post", url);
+          xhr.send(fd);
+        };
+        f.click();
+      };
+
+
+      var ui = {};
+      ui.timer = null;
+      ui.log = function(msg){
+        var me = this;
+        if(me.timer!=null){
+          window.clearTimeout(me.timer);
+          me.timer = null;
+        }
+        
+        var bar = document.getElementById('bar');
+        bar.style.display="block";
+        if(arguments.length>1){
+          for(var i=1; i<arguments.length; i++){
+            msg = (msg + "").replace("%s", arguments[i]);
+          }
+        }
+        bar.innerText = msg;
+        this.timer = window.setTimeout(function(){
+          bar.innerText = me.user.nick;
+          me.timer = null;
+        }, 1500);
+      };
+      ui.memo = document.getElementById('memo');
+      ui.select = function(){
+        var me = this;
+        resource.add({
+          url: "/woo/resource/add.do",
+          onstarting: function(file){
+            me.log("正在连接服务器...");
+            return true;
+          },
+          onfinished: function(ret){
+            //me.pages.show("main");
+            var r=JSON.parse(ret);
+            me.onfinish(r.rowid, r.filename);
+          },
+          onprogress: function(loaded, total){
+            me.onprogress(loaded, total);
+          }
+        });        
+      };
+
+      ui.onprogress = function(loaded, total){
+        var me = this;
+        if(total==-1){
+          me.log("网络连接异常。");
+        }
+        else{
+          me.log("正在上传：%sK/%sK",(Math.floor(loaded/1024*100)/100),(Math.floor(total/1024*100)/100));        
+        }
+      };
+
+      ui.onfinish = function(rowid, fn){
+        var me = this;
+        me.log("上传成功");     
+        if (!rowid) return;
+        var url = "/woo/resource/show.do?rowid=" + rowid;
+        var p = fn.lastIndexOf('.');
+        var text = "";
+        if(p===-1) {
+          text = '　文件：[' + sfn + '](' + url + ')'; 
+        }
+        else {
+          var ext = fn.slice(p+1).toLowerCase();
+          var sfn = fn.replace(/"/g, "").replace(/\[/g, "").replace(/\]/g, "");
+          switch(ext){
+            case "jpg":
+            case "gif":
+            case "png":
+            case "jpeg":
+            case "webp":
+            case "bmp":{
+              text = '　![img](' + url +')';
+              break;
+            }
+            case "mp3":{
+              text = '　音频：[' + sfn + '](' + url + ')'; 
+              break;
+            }
+            case "flv":
+            case "mp4":{
+              text = '　视频：[' + sfn + '](' + url + ')'; 
+              break;
+            }
+            default:{
+              text = '　文件：[' + sfn + '](' + url + ')'; 
+              break;
+            }
+          }
+        }
+        this.memo.value = this.memo.value + text + "\r\n";
+      };
+      
+      ui.user = {};
+      ui.user.uid = "";
+      ui.user.nick = "";
+      ui.user.check = function(callback){
+        var me = this;
+        ajax.get("/woo/uid.do", function(data, error) {
+          if (error) return;
+          try{
+            var u = JSON.parse(data);
+            if( u && (u.uid!='')){
+              me.uid = u.uid;
+              callback(true);
+            }
+            else{
+              callback(false);
+            }
+          }
+          catch(e){
+            console.log(e);
+            callback(false);
+          }
+        });
+      };
+      
+      ui.avatar = {};
+      ui.avatar.nick = "";
+      ui.avatar.src = "";
+      ui.avatar.load = function(uid, callback){
+        var me = this;
+        ajax.get("/woo/avatar/load.do?uid=" + uid, function(data, err){
+          try{
+            var json = JSON.parse(data);
+            me.nick = json.nick;
+            me.src = "/woo/avatar/show.png?rowid=" + json.avatar;
+            callback(json.nick);
+          }
+          catch(e){
+            console.log(e);
+            callback("");
+          }
+        });
+      };
+
+      
+      ui.toessay = function(text, callback){
+        var me = this;
+        var body = [];
+        body.push("　**散记**　　");
+        body.push("----------------------------------------------------------------------------------------\r\n");
+        body.push(text);
+        body.push("\r\n----------------------------------------------------------------------------------------");
+        body.push("　来自: " + me.user.nick);
+        ajax.post("/woo/bin/essay/save.do", "text=" + window.encodeURIComponent(body.join("\r\n")), function(data, error){
+          var mc = data.match(/name="woo:rowid" content="(\d{48})"/);
+          if(mc){
+            var rowid = mc[1];
+            callback(rowid);
+          }
+          else{
+            me.log("保存失败，请重试...");
+          }
+        })
+      };
+      
+      ui.tobox = function(rowid){
+        var body = [];
+        var url = "/woo/bin/essay/view.html?rowid=" + rowid;
+        body.push("box.xid=box.essay.share");
+        body.push("box.content=" + window.encodeURIComponent('ESSAY: [' + 'url href="' + url + '" title="' + rowid + '"]'));
+        ajax.json.post("/woo/box/add.do", body.join("&"), function(data){
+          console.log(data);
+          if(data.ret){
+            window.location = "/woo/www/box/view.htm?rowid=" + data.rowid;
+          }          
+        });
+
+      };
+      
+      ui.save = function(){
+        var me = this;
+        me.toessay(me.memo.value, function(url){
+          me.tobox(url);
+        });
+      };
+      
+      ui.load = function(){
+        var me = this;
+        this.user.check(function(ret){
+          if(!ret){
+            window.location = "/woo/sso/security.do?device=mobile&service=" + window.location.pathname;
+          }
+          else{
+            var main = document.getElementById('main');
+            main.style.display = "block";
+            me.avatar.load(me.user.uid, function(nick){
+              me.user.nick = nick;
+              me.log(nick);
+            });
+          }
+        });
+      };
+      //ui.load();
+      var main = document.getElementById('main');
+      main.style.display = "block";
+    </script>
+  </body>
+</html>
+  
