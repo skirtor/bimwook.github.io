@@ -16,13 +16,13 @@
       xhr = null;
     }
     xhr.onerror = function(e){
-      done({text: "", data: this.response, error: "Network-Error", headers: [], json: function(){return null;}});
+      done({status:0, text: "", data: this.response, error: "Network-Error", headers: [], json: function(){return null;}});
     }
     xhr.onabort = function(){
-      done({text: "", data: this.response, error: "User-Abort", headers: [], json: function(){return null;}});
+      done({status:0, text: "", data: this.response, error: "User-Abort", headers: [], json: function(){return null;}});
     }    
     xhr.ontimeout = function(){
-      done({text: "", data: this.response, error: "Time-Out", headers: [], json: function(){return null;}});
+      done({status:0, text: "", data: this.response, error: "Time-Out", headers: [], json: function(){return null;}});
     }
     xhr.onload = function(){
       var mc = (this.getAllResponseHeaders().replace(/\r/g, "")||"").match(/^([^:]*):(.*)$/igm);
@@ -31,7 +31,7 @@
         var m = row.match(/^([^:]*):(.*)$/);
         headers.push({name: m[1].trim(), value: m[2].trim() });
       });
-      done({text: this.responseText, data: this.response, error: null, headers: headers, json: function(){ return fn.json(this); }});
+      done({status: this.status, text: this.responseText, data: this.response, error: null, headers: headers, json: function(){ return fn.json(this); }});
     }
     xhr.open(method||"GET", url, true);
     if(method=="POST"){
