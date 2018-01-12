@@ -59,7 +59,7 @@
   fn.encoder.url = function(v){
     return w.encodeURIComponent(v);
   }; 
-  var o = {
+  w["o-muen"] = {
     now: function(fmt){
       return fn.now(fmt);
     },
@@ -91,6 +91,5 @@
       }
     }
   };
-  w.ajax = o.ajax;
-  w["o-muen"] = o;
+  w.ajax = w["o-muen"].ajax;
 }(window);
